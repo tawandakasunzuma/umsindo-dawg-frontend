@@ -18,6 +18,10 @@ export default function UploadPage() {
     // State to store preview URL of the currently selected file
     const [previewUrl,setPreviewUrl] = useState(null);
 
+    const [artist, setArtist] = useState('');
+    const [title, setTitle] = useState('');
+    const [uploading, setUploading] = useState(false);
+
     function onFileChange(e) {
         
         // Get the list of selected files
@@ -50,47 +54,45 @@ export default function UploadPage() {
 
     // Handle form submission for file upload
     const handleSubmit = async (e) => {
-
-        e.preventDefault(); // Prevent page reload on form submit
+        e.preventDefault();
         if (!file) {
             setMessage('Please select a file before clicking upload.');
             return;
-        };
+        }
 
-        // Prepare form data with the selected file
+        // Prepare form data with the selected file + metadata
         const formData = new FormData();
-        formData.append("file", file);
+        formData.append('file', file);
+        formData.append('artist', artist);
+        formData.append('title', title);
 
-        // Send POST request to /api/upload
-        const res = await fetch("/api/upload", {
-            method: "POST",
-            body: formData,
-        });
+        setUploading(true);
+        try {
+            const res = await fetch('/api/upload', { method: 'POST', body: formData });
+            const data = await res.json();
 
-        // Get response from the server
-        const data = await res.json(); // Convert response to JSON
-
-        // If failed, show error and stop
-        if (!res.ok) {
-            // Show error message from server (or fallback if none)
-            setMessage(data?.message || "Upload failed");
+            if (!res.ok) {
+            setMessage(data?.message || 'Upload failed');
             return;
+            }
+
+            // success: server returns { url, id, message }
+            setMessage(data.message || 'Submitted — pending review');
+            setUploads((u) => [...u, data.url]);
+
+            // clear form fields
+            setArtist('');
+            setTitle('');
+            setFile(null);
+            if (previewUrl) { URL.revokeObjectURL(previewUrl); setPreviewUrl(null); }
+        } catch (err) {
+            console.error(err);
+            setMessage('Upload failed (network)');
+        } finally {
+            setUploading(false);
         }
-
-        // If successful, show message and update uploaded files list
-        setMessage(data.message || "Upload success!");
-        // Add a new preview URL for the uploaded file to the list
-        setUploads([...uploads, data.url]);
-
-        // Reset file input
-        setFile(null);
-
-        // Reset preview
-        if (previewUrl) {
-            URL.revokeObjectURL(previewUrl); // Clean up URL object
-        }
-        setPreviewUrl(null);
     };
+
 
     return (
         <div>
@@ -100,6 +102,20 @@ export default function UploadPage() {
                 Upload Your Freestyle
             </h1>
 
+            <input
+                value={artist}
+                onChange={(e) => setArtist(e.target.value)}
+                placeholder="Artist name"
+                required
+            />
+
+            <input
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                placeholder="Freestyle title"
+                required
+            />
+
             {/* File upload form */}
             <form onSubmit={handleSubmit}>
                 <input
@@ -108,8 +124,8 @@ export default function UploadPage() {
                     accept="video/*,audio/*" // Accept only audio and video files
                     onChange={onFileChange} // Save selected file to state
                 />
-                <button type="submit">
-                    Upload
+                <button type="submit" disabled={uploading}>
+                    {uploading ? 'Uploading…' : 'Upload'}
                 </button>
             </form>
 

@@ -1,5 +1,6 @@
 // Import the formidable library to handle file uploads
 import formidable from "formidable";
+import { createSubmission } from '../../lib/submissions';
 
 // Disable Next.js’s default body parser
 export const config = {
@@ -11,7 +12,7 @@ export const config = {
 // API route handler for /api/upload
 export default async function handler (request, response) {
 
-    console.log("🛠️ Upload API called:", request.method);
+    console.log("Upload API called:", request.method);
 
     // Only allow POST requests
     if (request.method === "POST") {
@@ -53,7 +54,7 @@ export default async function handler (request, response) {
             const tempPath = file.filepath;
 
             // Set upload directory inside your Next.js /public folder
-            const uploadDir = path.join(process.cwd(), 'public', 'upload');
+            const uploadDir = path.join(process.cwd(), 'public', 'uploads');
 
             // Create the uploads folder if it doesn't already exist
             await fs.mkdir(uploadDir, { recursive: true });
@@ -70,13 +71,30 @@ export default async function handler (request, response) {
             await fs.rename(tempPath, newPath);
 
             // Create the public URL to return to the frontend
-            const publicUrl = `/upload/${safeName}`;
+            const publicUrl = `/uploads/${safeName}`;
 
-            // Log for testing
-            console.log("Uploaded file: ",file);
+            // Get artist and title from the form fields, use defaults if not provided
+            const artist = fields?.artist || 'Unknown';
+            const title = fields?.title || 'Untitled';
+
+            // Create a new submission record with the artist, title, file URL, and status
+            const record = createSubmission({
+                artist, // artist name from form or 'Unknown'
+                title, // title from form or 'Untitled'
+                fileUrl: publicUrl, // where file is accessible
+                status: 'pending' // initial status set to pending review
+            });
+
+            // Log uploaded file and submission record (for debugging)
+            console.log("Uploaded file:", file);
+            console.log("Created submission record:", record);
 
             // At this point, the file is received, but we’re not saving it to disk or cloud yet
-            response.status(200).json({ message: "Upload success!", url: publicUrl });
+            response.status(200).json({
+                message: "Upload success!", 
+                url: publicUrl,
+                id: record.id, // send the new submission record ID
+            });
         });
         
     } else {

@@ -60,6 +60,11 @@ export default function UploadPage() {
             return;
         }
 
+        if (!artist || !title) {
+            setMessage('Please enter artist name and freestyle title before uploading.');
+            return;
+        }
+
         // Prepare form data with the selected file + metadata
         const formData = new FormData();
         formData.append('file', file);
@@ -78,7 +83,7 @@ export default function UploadPage() {
 
             // success: server returns { url, id, message }
             setMessage(data.message || 'Submitted — pending review');
-            setUploads((u) => [...u, data.url]);
+            setUploads(u => [...u, { id: data.id, url: data.url }]);
 
             // clear form fields
             setArtist('');
@@ -102,31 +107,36 @@ export default function UploadPage() {
                 Upload Your Freestyle
             </h1>
 
-            <input
-                value={artist}
-                onChange={(e) => setArtist(e.target.value)}
-                placeholder="Artist name"
-                required
-            />
-
-            <input
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                placeholder="Freestyle title"
-                required
-            />
-
             {/* File upload form */}
             <form onSubmit={handleSubmit}>
+                
+                <input
+                    name="artist"
+                    value={artist}
+                    onChange={(e) => setArtist(e.target.value)}
+                    placeholder="Artist name"
+                    required
+                />
+
+                <input
+                    name="title"
+                    value={title}
+                    onChange={(e) => setTitle(e.target.value)}
+                    placeholder="Freestyle title"
+                    required
+                />
+
                 <input
                     type="file"
                     name="file"
                     accept="video/*,audio/*" // Accept only audio and video files
                     onChange={onFileChange} // Save selected file to state
                 />
+
                 <button type="submit" disabled={uploading}>
                     {uploading ? 'Uploading…' : 'Upload'}
                 </button>
+
             </form>
 
             {/* Show preview when uploaded */}
@@ -149,7 +159,8 @@ export default function UploadPage() {
             </h2>
 
             {/* Uploaded files preview section with fullscreen button */}
-            {uploads.map((src, index) => {
+            {uploads.map((item, index) => {
+                const src = typeof item === 'string' ? item : item.url;
                 // Make sure there's a ref for this video
                 if (!videoRefs.current[index]) {
                     videoRefs.current[index] = React.createRef(); // Create a ref for this video to control it later
@@ -181,6 +192,15 @@ export default function UploadPage() {
                             playsInline
                             style={{ width: 360 }}
                         />
+                        
+                        {/* Pending badge + optional id shown for user feedback */}
+                        <div style={{ fontSize: 12, color: '#B3B3B3', marginTop: 6 }}>
+                            <span>Status: Pending</span>
+                            {item && item.id && (
+                                <small style={{ marginLeft: 8 }}>ID: {item.id}</small>
+                            )}
+                        </div>
+
                         <button onClick={goFull}>Fullscreen</button>
                     </div>
                 );

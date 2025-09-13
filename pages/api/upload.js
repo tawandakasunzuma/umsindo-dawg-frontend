@@ -73,14 +73,18 @@ export default async function handler (request, response) {
             // Create the public URL to return to the frontend
             const publicUrl = `/uploads/${safeName}`;
 
-            // Get artist and title from the form fields, use defaults if not provided
-            const artist = fields?.artist || 'Unknown';
-            const title = fields?.title || 'Untitled';
+            // Normalize fields (formidable can return strings or arrays)
+            const artist = Array.isArray(fields?.artist) ? (fields.artist[0] || 'Unknown') : (fields?.artist || 'Unknown');
+            const title  = Array.isArray(fields?.title)  ? (fields.title[0]  || 'Untitled') : (fields?.title  || 'Untitled');
+
+            // trim and sanitize a bit
+            const safeArtist = String(artist).trim().slice(0, 100);
+            const safeTitle  = String(title).trim().slice(0, 140);
 
             // Create a new submission record with the artist, title, file URL, and status
             const record = createSubmission({
-                artist, // artist name from form or 'Unknown'
-                title, // title from form or 'Untitled'
+                artist: safeArtist, // artist name from form or 'Unknown'
+                title: safeTitle, // title from form or 'Untitled'
                 fileUrl: publicUrl, // where file is accessible
                 status: 'pending' // initial status set to pending review
             });

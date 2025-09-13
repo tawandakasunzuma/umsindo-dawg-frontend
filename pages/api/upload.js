@@ -1,5 +1,6 @@
 // Import the formidable library to handle file uploads
 import formidable from "formidable";
+import { createSubmission } from '../../lib/submissions';
 
 // Disable Next.js’s default body parser
 export const config = {
@@ -11,7 +12,7 @@ export const config = {
 // API route handler for /api/upload
 export default async function handler (request, response) {
 
-    console.log("🛠️ Upload API called:", request.method);
+    console.log("Upload API called:", request.method);
 
     // Only allow POST requests
     if (request.method === "POST") {
@@ -53,7 +54,7 @@ export default async function handler (request, response) {
             const tempPath = file.filepath;
 
             // Set upload directory inside your Next.js /public folder
-            const uploadDir = path.join(process.cwd(), 'public', 'upload');
+            const uploadDir = path.join(process.cwd(), 'public', 'uploads');
 
             // Create the uploads folder if it doesn't already exist
             await fs.mkdir(uploadDir, { recursive: true });
@@ -70,13 +71,34 @@ export default async function handler (request, response) {
             await fs.rename(tempPath, newPath);
 
             // Create the public URL to return to the frontend
-            const publicUrl = `/upload/${safeName}`;
+            const publicUrl = `/uploads/${safeName}`;
 
-            // Log for testing
-            console.log("Uploaded file: ",file);
+            // Normalize fields (formidable can return strings or arrays)
+            const artist = Array.isArray(fields?.artist) ? (fields.artist[0] || 'Unknown') : (fields?.artist || 'Unknown');
+            const title  = Array.isArray(fields?.title)  ? (fields.title[0]  || 'Untitled') : (fields?.title  || 'Untitled');
+
+            // trim and sanitize a bit
+            const safeArtist = String(artist).trim().slice(0, 100);
+            const safeTitle  = String(title).trim().slice(0, 140);
+
+            // Create a new submission record with the artist, title, file URL, and status
+            const record = createSubmission({
+                artist: safeArtist, // artist name from form or 'Unknown'
+                title: safeTitle, // title from form or 'Untitled'
+                fileUrl: publicUrl, // where file is accessible
+                status: 'pending' // initial status set to pending review
+            });
+
+            // Log uploaded file and submission record (for debugging)
+            console.log("Uploaded file:", file);
+            console.log("Created submission record:", record);
 
             // At this point, the file is received, but we’re not saving it to disk or cloud yet
-            response.status(200).json({ message: "Upload success!", url: publicUrl });
+            response.status(200).json({
+                message: "Upload success!", 
+                url: publicUrl,
+                id: record.id, // send the new submission record ID
+            });
         });
         
     } else {

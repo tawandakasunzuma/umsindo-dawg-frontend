@@ -18,6 +18,10 @@ export default function UploadPage() {
     // State to store preview URL of the currently selected file
     const [previewUrl,setPreviewUrl] = useState(null);
 
+    const [artist, setArtist] = useState('');
+    const [title, setTitle] = useState('');
+    const [uploading, setUploading] = useState(false);
+
     function onFileChange(e) {
         
         // Get the list of selected files
@@ -50,47 +54,50 @@ export default function UploadPage() {
 
     // Handle form submission for file upload
     const handleSubmit = async (e) => {
-
-        e.preventDefault(); // Prevent page reload on form submit
+        e.preventDefault();
         if (!file) {
             setMessage('Please select a file before clicking upload.');
             return;
-        };
+        }
 
-        // Prepare form data with the selected file
-        const formData = new FormData();
-        formData.append("file", file);
-
-        // Send POST request to /api/upload
-        const res = await fetch("/api/upload", {
-            method: "POST",
-            body: formData,
-        });
-
-        // Get response from the server
-        const data = await res.json(); // Convert response to JSON
-
-        // If failed, show error and stop
-        if (!res.ok) {
-            // Show error message from server (or fallback if none)
-            setMessage(data?.message || "Upload failed");
+        if (!artist || !title) {
+            setMessage('Please enter artist name and freestyle title before uploading.');
             return;
         }
 
-        // If successful, show message and update uploaded files list
-        setMessage(data.message || "Upload success!");
-        // Add a new preview URL for the uploaded file to the list
-        setUploads([...uploads, data.url]);
+        // Prepare form data with the selected file + metadata
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('artist', artist);
+        formData.append('title', title);
 
-        // Reset file input
-        setFile(null);
+        setUploading(true);
+        try {
+            const res = await fetch('/api/upload', { method: 'POST', body: formData });
+            const data = await res.json();
 
-        // Reset preview
-        if (previewUrl) {
-            URL.revokeObjectURL(previewUrl); // Clean up URL object
+            if (!res.ok) {
+            setMessage(data?.message || 'Upload failed');
+            return;
+            }
+
+            // success: server returns { url, id, message }
+            setMessage(data.message || 'Submitted — pending review');
+            setUploads(u => [...u, { id: data.id, url: data.url }]);
+
+            // clear form fields
+            setArtist('');
+            setTitle('');
+            setFile(null);
+            if (previewUrl) { URL.revokeObjectURL(previewUrl); setPreviewUrl(null); }
+        } catch (err) {
+            console.error(err);
+            setMessage('Upload failed (network)');
+        } finally {
+            setUploading(false);
         }
-        setPreviewUrl(null);
     };
+
 
     return (
         <div>
@@ -102,15 +109,34 @@ export default function UploadPage() {
 
             {/* File upload form */}
             <form onSubmit={handleSubmit}>
+                
+                <input
+                    name="artist"
+                    value={artist}
+                    onChange={(e) => setArtist(e.target.value)}
+                    placeholder="Artist name"
+                    required
+                />
+
+                <input
+                    name="title"
+                    value={title}
+                    onChange={(e) => setTitle(e.target.value)}
+                    placeholder="Freestyle title"
+                    required
+                />
+
                 <input
                     type="file"
                     name="file"
                     accept="video/*,audio/*" // Accept only audio and video files
                     onChange={onFileChange} // Save selected file to state
                 />
-                <button type="submit">
-                    Upload
+
+                <button type="submit" disabled={uploading}>
+                    {uploading ? 'Uploading…' : 'Upload'}
                 </button>
+
             </form>
 
             {/* Show preview when uploaded */}
@@ -133,7 +159,8 @@ export default function UploadPage() {
             </h2>
 
             {/* Uploaded files preview section with fullscreen button */}
-            {uploads.map((src, index) => {
+            {uploads.map((item, index) => {
+                const src = typeof item === 'string' ? item : item.url;
                 // Make sure there's a ref for this video
                 if (!videoRefs.current[index]) {
                     videoRefs.current[index] = React.createRef(); // Create a ref for this video to control it later
@@ -165,6 +192,15 @@ export default function UploadPage() {
                             playsInline
                             style={{ width: 360 }}
                         />
+                        
+                        {/* Pending badge + optional id shown for user feedback */}
+                        <div style={{ fontSize: 12, color: '#B3B3B3', marginTop: 6 }}>
+                            <span>Status: Pending</span>
+                            {item && item.id && (
+                                <small style={{ marginLeft: 8 }}>ID: {item.id}</small>
+                            )}
+                        </div>
+
                         <button onClick={goFull}>Fullscreen</button>
                     </div>
                 );

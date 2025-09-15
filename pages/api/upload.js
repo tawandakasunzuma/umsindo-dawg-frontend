@@ -1,6 +1,11 @@
 // Import the formidable library to handle file uploads
 import formidable from "formidable";
 import { createSubmission } from '../../lib/submissions';
+import ffmpeg from "fluent-ffmpeg";
+import ffprobeStatic from "ffprobe-static";
+
+// Tell 'fluent-ffmpeg' where to find the ffprobe tool — this is required for it to read media file details
+ffmpeg.setFfprobePath(ffprobeStatic.path);
 
 // Disable Next.js’s default body parser
 export const config = {
@@ -72,6 +77,53 @@ export default async function handler (request, response) {
 
             // Create the public URL to return to the frontend
             const publicUrl = `/uploads/${safeName}`;
+
+            try {
+            // Use ffprobe (via fluent-ffmpeg) to analyze the saved audio file
+            const probe = await new Promise((resolve, reject) => {
+                ffmpeg.ffprobe(newPath, (err, metadata) => {
+                    if (err) return reject(err);
+                        resolve(metadata);
+                    });
+            });
+
+            // Pull the duration (in seconds) from the metadata
+            const duration = (probe && probe.format && probe.format.duration) ? Number(probe.format.duration) : 0;
+            console.log('ffprobe duration (s):', duration);
+
+            // Define allowed duration range
+            const MIN_SEC = 60;
+            const MAX_SEC = 90;
+
+            // If duration is outside allowed range, delete the file and respond with an error
+            if (!(duration >= MIN_SEC && duration <= MAX_SEC)) {
+                try {
+                    // Try to delete the uploaded file
+                    await fs.unlink(newPath);
+                } catch (e) {
+                    console.warn('Cleanup unlink failed', e);
+                }
+
+                // Send error response to the client
+                return response.status(422).json({
+                    message: `Invalid duration: ${Math.round(duration)}s — freestyles must be between ${MIN_SEC} and ${MAX_SEC} seconds.`
+                });
+            }
+
+            } catch (probeErr) {
+            // Something went wrong while probing the file
+            console.error('ffprobe error', probeErr);
+
+            // Attempt to clean up by deleting the file
+            try {
+                await fs.unlink(newPath);
+            } catch (e) {
+                console.warn('cleanup unlink failed', e);
+            }
+
+            // Send internal server error response
+            return response.status(500).json({ message: 'Failed to validate uploaded file duration.' });
+            }
 
             // Normalize fields (formidable can return strings or arrays)
             const artist = Array.isArray(fields?.artist) ? (fields.artist[0] || 'Unknown') : (fields?.artist || 'Unknown');

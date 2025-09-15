@@ -7,6 +7,9 @@ import ffprobeStatic from "ffprobe-static";
 // Tell 'fluent-ffmpeg' where to find the ffprobe tool — this is required for it to read media file details
 ffmpeg.setFfprobePath(ffprobeStatic.path);
 
+// Log the ffprobe path for debugging (make sure it points to a real file in node_modules)
+console.log('ffprobe path:', ffprobeStatic.path);
+
 // Disable Next.js’s default body parser
 export const config = {
     api: {

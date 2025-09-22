@@ -16,40 +16,36 @@ export default function UploadPage() {
     const [uploads, setUploads] = useState([]);
 
     // State to store preview URL of the currently selected file
-    const [previewUrl,setPreviewUrl] = useState(null);
+    const [previewUrl, setPreviewUrl] = useState(null);
 
+    // Form input states
     const [artist, setArtist] = useState('');
     const [title, setTitle] = useState('');
     const [uploading, setUploading] = useState(false);
 
+    // Handle file selection and preview logic
     function onFileChange(e) {
-        
-        // Get the list of selected files
         const fileList = e.target.files;
 
-        // Check if at least one file is selected
         if (fileList && fileList.length > 0) {
-        
             const file = fileList[0]; // Get the first file
             setFile(file); // Save the file to state
 
-            // Revoke previous preview URL if it exists
+            // Revoke old preview URL if it exists
             if (previewUrl) {
                 URL.revokeObjectURL(previewUrl);
             }
 
-            const newPreviewUrl = URL.createObjectURL(file); // Create a preview URL
-            setPreviewUrl(newPreviewUrl); // Save the preview URL to state
-        
-            } else {
-                // No file selected, so clear the file and preview
-                setFile(null);
-                if (previewUrl) {
-                    URL.revokeObjectURL(previewUrl);
-                }
-                setPreviewUrl(null);
+            const newPreviewUrl = URL.createObjectURL(file); // Create preview
+            setPreviewUrl(newPreviewUrl); // Save preview
+        } else {
+            // If no file selected, clear everything
+            setFile(null);
+            if (previewUrl) {
+                URL.revokeObjectURL(previewUrl);
             }
-
+            setPreviewUrl(null);
+        }
     }
 
     // Handle form submission for file upload
@@ -77,19 +73,34 @@ export default function UploadPage() {
             const data = await res.json();
 
             if (!res.ok) {
-            setMessage(data?.message || 'Upload failed');
-            return;
+                setMessage(data?.message || 'Upload failed');
+                return;
             }
 
             // success: server returns { url, id, message }
             setMessage(data.message || 'Submitted — pending review');
-            setUploads(u => [...u, { id: data.id, url: data.url }]);
 
-            // clear form fields
+            // Append the new uploaded item with optional thumbnail
+            setUploads(u => [
+                ...u,
+                {
+                    id: data.id,
+                    url: data.url,
+                    // Attempt to generate thumbnail path from uploaded URL
+                    thumbnail: data.url?.endsWith('.mp4')
+                        ? data.url.replace('.mp4', '-thumb-wide.jpg')
+                        : null,
+                }
+            ]);
+
+            // Clear form fields
             setArtist('');
             setTitle('');
             setFile(null);
-            if (previewUrl) { URL.revokeObjectURL(previewUrl); setPreviewUrl(null); }
+            if (previewUrl) {
+                URL.revokeObjectURL(previewUrl);
+                setPreviewUrl(null);
+            }
         } catch (err) {
             console.error(err);
             setMessage('Upload failed (network)');
@@ -97,7 +108,6 @@ export default function UploadPage() {
             setUploading(false);
         }
     };
-
 
     return (
         <div>
@@ -109,7 +119,7 @@ export default function UploadPage() {
 
             {/* File upload form */}
             <form onSubmit={handleSubmit}>
-                
+
                 <input
                     name="artist"
                     value={artist}
@@ -136,10 +146,9 @@ export default function UploadPage() {
                 <button type="submit" disabled={uploading}>
                     {uploading ? 'Uploading…' : 'Upload'}
                 </button>
-
             </form>
 
-            {/* Show preview when uploaded */}
+            {/* Show preview of selected file before upload */}
             {previewUrl && (
                 <div>
                     <h3>Preview:</h3>
@@ -158,33 +167,56 @@ export default function UploadPage() {
                 Uploaded Freestyles (preview only)
             </h2>
 
-            {/* Uploaded files preview section with fullscreen button */}
+            {/* Uploaded files preview section with optional thumbnail and fullscreen */}
             {uploads.map((item, index) => {
-                const src = typeof item === 'string' ? item : item.url;
-                // Make sure there's a ref for this video
+                const src = item.url || item;
+                const thumb =
+                    item.thumbnail || // If explicitly provided by backend
+                    (item.url && item.url.endsWith('.mp4')
+                        ? item.url.replace('.mp4', '-thumb-wide.jpg') // Try to generate
+                        : null);
+
+                // Ensure we have a ref for this video
                 if (!videoRefs.current[index]) {
-                    videoRefs.current[index] = React.createRef(); // Create a ref for this video to control it later
+                    videoRefs.current[index] = React.createRef();
                 }
 
-                // Function to make this video fullscreen
+                // Fullscreen helper function for each video
                 async function goFull() {
                     const videoElement = videoRefs.current[index].current;
                     if (!videoElement) return;
 
                     try {
                         if (videoElement.requestFullscreen) {
-                            await videoElement.requestFullscreen(); // Desktop browsers
+                            await videoElement.requestFullscreen(); // Desktop
                         } else if (videoElement.webkitEnterFullscreen) {
                             videoElement.webkitEnterFullscreen(); // iOS fallback
                         }
-                        await videoElement.play(); // Start playback after fullscreen
+                        await videoElement.play(); // Start playback
                     } catch (err) {
                         console.warn("Fullscreen failed", err);
                     }
                 }
 
                 return (
-                    <div key={index}>
+                    <div key={index} style={{ marginBottom: 16 }}>
+
+                        {/* Optional thumbnail preview if available */}
+                        {thumb && (
+                            <img
+                                src={thumb}
+                                alt={`Thumbnail for ${item.id || 'upload'}`}
+                                style={{
+                                    width: 360,
+                                    display: 'block',
+                                    marginBottom: 8,
+                                    borderRadius: 4,
+                                    objectFit: 'cover'
+                                }}
+                            />
+                        )}
+
+                        {/* Actual video preview */}
                         <video
                             ref={videoRefs.current[index]} // Attach the ref to this video
                             src={src}
@@ -192,16 +224,19 @@ export default function UploadPage() {
                             playsInline
                             style={{ width: 360 }}
                         />
-                        
-                        {/* Pending badge + optional id shown for user feedback */}
+
+                        {/* Status badge with optional ID */}
                         <div style={{ fontSize: 12, color: '#B3B3B3', marginTop: 6 }}>
-                            <span>Status: Pending</span>
-                            {item && item.id && (
+                            Status: Pending
+                            {item.id && (
                                 <small style={{ marginLeft: 8 }}>ID: {item.id}</small>
                             )}
                         </div>
 
-                        <button onClick={goFull}>Fullscreen</button>
+                        {/* Button to enter fullscreen for this video */}
+                        <button onClick={goFull} style={{ marginTop: 6 }}>
+                            Fullscreen
+                        </button>
                     </div>
                 );
             })}

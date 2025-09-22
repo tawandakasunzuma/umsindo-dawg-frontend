@@ -211,7 +211,7 @@ export default async function handler (request, response) {
 
                 // Normalize fields (formidable can return strings or arrays)
                 const artist = Array.isArray(fields?.artist) ? (fields.artist[0] || 'Unknown') : (fields?.artist || 'Unknown');
-                const title  = Array.isArray(fields?.title)  ? (fields.title[0]  || 'Untitled') : (fields?.title  || 'Untitled');
+                const title  = Array.isArray(fields?.title) ? (fields.title[0]  || 'Untitled') : (fields?.title  || 'Untitled');
 
                 // trim and sanitize a bit
                 const safeArtist = String(artist).trim().slice(0, 100);

@@ -1,0 +1,126 @@
+[
+  {
+    "id": "1757789491657",
+    "status": "rejected",
+    "createdAt": "2025-09-13T18:51:31.684Z",
+    "artist": "A",
+    "title": "T",
+    "fileUrl": "/uploads/x.mp4"
+  },
+  {
+    "id": "1757791891619",
+    "status": "pending",
+    "createdAt": "2025-09-13T19:31:31.619Z",
+    "artist": [
+      "Gunna"
+    ],
+    "title": [
+      "Wunna"
+    ],
+    "fileUrl": "/uploads/1757791891617-Wunna.mp4"
+  },
+  {
+    "id": "1757794872859",
+    "status": "approved",
+    "createdAt": "2025-09-13T20:21:12.859Z",
+    "artist": "Gunna",
+    "title": "Skybox",
+    "fileUrl": "/uploads/1757794872857-Skybox.mp4"
+  },
+  {
+    "id": "1757964045024",
+    "status": "pending",
+    "createdAt": "2025-09-15T19:20:45.024Z",
+    "artist": "Test",
+    "title": "meduim",
+    "fileUrl": "/uploads/1757964044860-09-Stay-With-Me-(Part-2).m4a"
+  },
+  {
+    "id": "1757969406189",
+    "status": "pending",
+    "createdAt": "2025-09-15T20:50:06.189Z",
+    "artist": "Gunna",
+    "title": "mk,",
+    "fileUrl": "/uploads/1757969405639-VID-20201204-WA0001.mp4",
+    "durationSeconds": 96,
+    "thumbnailWide": null,
+    "thumbnailSquare": null
+  },
+  {
+    "id": "1757970837986",
+    "status": "pending",
+    "createdAt": "2025-09-15T21:13:57.986Z",
+    "artist": "Gunna",
+    "title": "sd",
+    "fileUrl": "/uploads/1757970836601-VID-20201204-WA0001.mp4",
+    "durationSeconds": 96,
+    "thumbnailWide": null,
+    "thumbnailSquare": null
+  },
+  {
+    "id": "1757971979383",
+    "status": "pending",
+    "createdAt": "2025-09-15T21:32:59.383Z",
+    "artist": "Gunna",
+    "title": "sf",
+    "fileUrl": "/uploads/1757971978818-VID-20201204-WA0001.mp4",
+    "durationSeconds": 96,
+    "thumbnailWide": null,
+    "thumbnailSquare": null
+  },
+  {
+    "id": "1757972092930",
+    "status": "pending",
+    "createdAt": "2025-09-15T21:34:52.930Z",
+    "artist": "wd",
+    "title": "k;",
+    "fileUrl": "/uploads/1757972092403-VID-20201204-WA0001.mp4",
+    "durationSeconds": 96,
+    "thumbnailWide": null,
+    "thumbnailSquare": null
+  },
+  {
+    "id": "1757972876929",
+    "status": "pending",
+    "createdAt": "2025-09-15T21:47:56.929Z",
+    "artist": "kkj",
+    "title": "kkm",
+    "fileUrl": "/uploads/1757972876738-VID-20201204-WA0001.mp4",
+    "durationSeconds": 96,
+    "thumbnailWide": null,
+    "thumbnailSquare": null
+  },
+  {
+    "id": "1757973271347",
+    "status": "pending",
+    "createdAt": "2025-09-15T21:54:31.347Z",
+    "artist": "wd",
+    "title": "sd",
+    "fileUrl": "/uploads/1757973254627-VID-20190701-WA0009.mp4",
+    "durationSeconds": 63,
+    "thumbnailWide": "/uploads/1757973254627-VID-20190701-WA0009.mp4-thumb-wide.jpg",
+    "thumbnailSquare": "/uploads/1757973254627-VID-20190701-WA0009.mp4-thumb-square.jpg"
+  },
+  {
+    "id": "1757973287049",
+    "status": "pending",
+    "createdAt": "2025-09-15T21:54:47.049Z",
+    "artist": "wd",
+    "title": "sdsd",
+    "fileUrl": "/uploads/1757973286433-VID-20190701-WA0009.mp4",
+    "durationSeconds": 63,
+    "thumbnailWide": "/uploads/1757973286433-VID-20190701-WA0009.mp4-thumb-wide.jpg",
+    "thumbnailSquare": "/uploads/1757973286433-VID-20190701-WA0009.mp4-thumb-square.jpg"
+  },
+  {
+    "id": "1757973959546",
+    "status": "pending",
+    "createdAt": "2025-09-15T22:05:59.546Z",
+    "artist": "test",
+    "title": "mk",
+    "fileUrl": "/uploads/1757973936550-VID-20201204-WA0001.mp4",
+    "durationSeconds": 96,
+    "thumbnailWide": "/uploads/1757973936550-VID-20201204-WA0001.mp4-thumb-wide.jpg",
+    "thumbnailSquare": "/uploads/1757973936550-VID-20201204-WA0001.mp4-thumb-square.jpg"
+  }
+]

@@ -133,5 +133,27 @@
     "durationSeconds": 96,
     "thumbnailWide": "/uploads/1758571250694-VID-20201204-WA0001.mp4-thumb-wide.jpg",
     "thumbnailSquare": "/uploads/1758571250694-VID-20201204-WA0001.mp4-thumb-square.jpg"
+  },
+  {
+    "id": "1758573482989",
+    "status": "pending",
+    "createdAt": "2025-09-22T20:38:02.989Z",
+    "artist": "Test",
+    "title": "nj",
+    "fileUrl": "/uploads/1758573479424-Blackout.mp4",
+    "durationSeconds": 101,
+    "thumbnailWide": "/uploads/1758573479424-Blackout.mp4-thumb-wide.jpg",
+    "thumbnailSquare": "/uploads/1758573479424-Blackout.mp4-thumb-square.jpg"
+  },
+  {
+    "id": "1758573538462",
+    "status": "pending",
+    "createdAt": "2025-09-22T20:38:58.462Z",
+    "artist": "Test",
+    "title": "Video",
+    "fileUrl": "/uploads/1758573537231-VID-20201204-WA0001.mp4",
+    "durationSeconds": 96,
+    "thumbnailWide": "/uploads/1758573537231-VID-20201204-WA0001.mp4-thumb-wide.jpg",
+    "thumbnailSquare": "/uploads/1758573537231-VID-20201204-WA0001.mp4-thumb-square.jpg"
   }
 ]
